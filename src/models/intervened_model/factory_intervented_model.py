@@ -4,13 +4,13 @@ from torch.nn import CrossEntropyLoss
 from transformers import LlamaForCausalLM, LlamaConfig
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from typing import Optional, List, Tuple, Union
-from src.models.intervented_model.modeling_llama import InterventedLlamaModel
+from src.models.intervened_model.modeling_llama import IntervenedLlamaModel
 
 
-class InterventedLM(LlamaForCausalLM):
+class IntervenedLM(LlamaForCausalLM):
     def __init__(self, config: LlamaConfig):
         super().__init__(config)
-        self.model = InterventedLlamaModel(config)
+        self.model = IntervenedLlamaModel(config)
 
     def set_value_model(self, value_model):
         self.value_model = value_model.to(torch.float16)

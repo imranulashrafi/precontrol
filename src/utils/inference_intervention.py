@@ -4,7 +4,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
 from transformers import LlamaTokenizer, LlamaForCausalLM
-from src.models.intervented_model.factory_intervented_model import InterventedLM
+from src.models.intervened_model.factory_intervened_model import IntervenedLM
 from math import ceil
 
 
@@ -55,7 +55,7 @@ class InferenceIntervention:
 
     def _load_model_and_tokenizer(self):
         if self.use_intervention:
-            self.model = InterventedLM.from_pretrained(
+            self.model = IntervenedLM.from_pretrained(
                 self.model_path,
                 low_cpu_mem_usage=True,
                 torch_dtype=torch.float16,

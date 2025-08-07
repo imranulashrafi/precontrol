@@ -10,7 +10,7 @@ from transformers.utils import logging
 logger = logging.get_logger(__name__)
 
 
-class InterventedLlamaModel(LlamaModel):
+class IntervenedLlamaModel(LlamaModel):
     def __init__(self, config: LlamaConfig):
         super().__init__(config)
 
