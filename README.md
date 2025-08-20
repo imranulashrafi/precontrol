@@ -1,4 +1,4 @@
-# 🧠 AligNET
+# 🧠 PRE-Control
 
 ## 📦 Requirements
 
@@ -21,7 +21,7 @@ python3.11 -m venv venv
 source venv/bin/activate
 ```
 
-- Download dataset files and place them at `dataset/shp`. #TODO
+- Download dataset files from here https://tinyurl.com/shpdata and place them at `dataset/shp`.
 
 - Specify training config parameters in `experiments/config.yaml`.
 

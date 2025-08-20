@@ -16,6 +16,9 @@ import wandb
 from src.models.reward_model.factory_reward_model import RewardModel
 from src.models.value_model.modeling_base import ValueFunctionModule
 from src.models.value_model.modeling_margin import ValueFunctionModuleMargin
+from src.models.value_model.modeling_margin_regularizer import (
+    ValueFunctionModuleMarginRegularizer,
+)
 from src.data.dataset_h5 import H5BatchDataset
 from transformers import AutoTokenizer
 from torch.utils.data import Subset
@@ -33,8 +36,6 @@ train_dataset = H5BatchDataset(
     batch_size=config["batch_size"],
     reward_tensor_path=config["reward_tensor_path_train"],
 )
-
-# train_dataset = Subset(train_dataset, indices=list(range(10)))
 
 val_dataset = H5BatchDataset(
     config["h5_path_validation"],
@@ -66,6 +67,14 @@ if config["experiment_name"] == "base":
     )
 elif config["experiment_name"] == "margin":
     model = ValueFunctionModuleMargin(
+        input_dim=config["input_dim"],
+        hidden_dim=config["hidden_dim"],
+        output_dim=config["output_dim"],
+        lr=config["lr"],
+        tokenizer=tokenizer,
+    )
+elif config["experiment_name"] == "margin_regularizer":
+    model = ValueFunctionModuleMarginRegularizer(
         input_dim=config["input_dim"],
         hidden_dim=config["hidden_dim"],
         output_dim=config["output_dim"],

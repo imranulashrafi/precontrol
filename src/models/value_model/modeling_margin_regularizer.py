@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from src.models.value_model.factory_value_model import BaseValueFunctionModule
 
 
-class ValueFunctionModuleMargin(BaseValueFunctionModule):
+class ValueFunctionModuleMarginRegularizer(BaseValueFunctionModule):
     def shared_step(self, batch, stage):
         activations = batch["generated_activations"]
         masks = batch["generated_masks"]
@@ -54,7 +54,9 @@ class ValueFunctionModuleMargin(BaseValueFunctionModule):
 
         margin_loss = -F.logsigmoid(final_preds_pref - final_preds_rej).mean()
 
-        total_loss = pairwise_loss + final_loss + margin_loss
+        regularizer_loss = F.mse_loss(final_preds, final_preds_pref, reduction="mean")
+
+        total_loss = pairwise_loss + final_loss + margin_loss + regularizer_loss
 
         is_train = stage == "train"
         is_val = stage == "val"
@@ -85,6 +87,14 @@ class ValueFunctionModuleMargin(BaseValueFunctionModule):
         self.log(
             f"{stage}_margin_loss",
             margin_loss,
+            on_step=is_train,
+            on_epoch=is_val,
+            logger=True,
+        )
+
+        self.log(
+            f"{stage}_regularizer_loss",
+            regularizer_loss,
             on_step=is_train,
             on_epoch=is_val,
             logger=True,

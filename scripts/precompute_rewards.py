@@ -40,5 +40,5 @@ print(f"Reward tensor shape: {reward_tensor.shape}")
 
 torch.save(
     reward_tensor,
-    "/home/iashrafi/Data/Codes/refactored_final/dataset/shp/rewards_ultrarm_validation_short.pt",
+    "/home/iashrafi/Data/Codes/alignet/dataset/shp/rewards_ultrarm_validation_short.pt",
 )

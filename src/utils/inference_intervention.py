@@ -15,8 +15,8 @@ class InferenceIntervention:
         tokenizer,
         use_intervention=True,
         value_model=None,
-        epochs=30,
-        lr=1e-3,
+        epochs=100,
+        lr=1,
     ):
         self.model_path = model_path
         self.use_intervention = use_intervention
@@ -73,7 +73,7 @@ class InferenceIntervention:
 
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        self.model.generation_config.temperature = None
-        self.model.generation_config.top_k = None
+        self.model.generation_config.do_sample = False
+        self.model.generation_config.num_beams = 1
         self.model.config.pad_token = self.tokenizer.eos_token
         self.model.config.pad_token_id = self.tokenizer.eos_token_id

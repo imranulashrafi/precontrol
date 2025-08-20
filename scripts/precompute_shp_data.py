@@ -20,7 +20,7 @@ import hdf5plugin
 from numcodecs import Blosc
 
 CONFIG_PATH = "experiments/config.yaml"
-BATCH_SIZE = 8
+BATCH_SIZE = 4
 MAX_SEQ_LEN = 256
 MAX_INPUT_TOKENS = 300
 OUTPUT_DIR = "/scratch/iashrafi/"
@@ -412,17 +412,19 @@ def main():
         llm, tokenizer, f"cuda:{config['llm_device']}"
     )
 
-    # dataset = load_dataset("stanfordnlp/SHP", split="train")
-    # num_samples = min(180000, len(dataset))
-    # subset = dataset.shuffle(seed=42).select(range(num_samples))
+    dataset = load_dataset("stanfordnlp/SHP", split="train")
+    num_samples = min(200, len(dataset))
+    subset = dataset.shuffle(seed=42).select(range(num_samples))
 
-    subset = load_dataset(
-        "json",
-        data_files="/home/iashrafi/Data/Codes/refactored_final/dataset/shp/validation.json",
-        split="train",
-    )
+    # subset = load_dataset(
+    #     "json",
+    #     data_files="/home/iashrafi/Data/Codes/alignet/dataset/shp/raw/validation.json",
+    #     split="train",
+    # )
+    # num_samples = min(200, len(subset))
+    # subset = subset.shuffle(seed=42).select(range(num_samples))
 
-    process_split("validation_short", subset, activation_generator, tokenizer, config)
+    process_split("train_short", subset, activation_generator, tokenizer, config)
 
 
 if __name__ == "__main__":
