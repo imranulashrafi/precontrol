@@ -12,10 +12,10 @@ from src.models.reward_model.factory_reward_model import RewardModel
 from src.data.dataset_h5 import H5BatchDataset
 from tqdm import tqdm
 
-h5_path = "/scratch/iashrafi/validation_short.h5"
+h5_path = "/home/iashrafi/Data/Codes/refactored_final/dataset/shp/train_shp.h5"
 reward_model_name = "openbmb/UltraRM-13b"
 
-dataset = H5BatchDataset(h5_path, batch_size=1)
+dataset = H5BatchDataset(h5_path, batch_size=16)
 dataloader = DataLoader(dataset, batch_size=None, shuffle=False)
 
 reward_model = RewardModel(reward_model_name)
@@ -40,5 +40,5 @@ print(f"Reward tensor shape: {reward_tensor.shape}")
 
 torch.save(
     reward_tensor,
-    "/home/iashrafi/Data/Codes/alignet/dataset/shp/rewards_ultrarm_validation_short.pt",
+    "/home/iashrafi/Data/Codes/refactored_final/dataset/shp/rewards_ultrarm_train_shp.pt",
 )

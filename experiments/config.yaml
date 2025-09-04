@@ -1,10 +1,11 @@
-experiment_name: margin_regularizer
-h5_path_train: dataset/shp/train_short.h5
-h5_path_validation: dataset/shp/validation_short.h5
-reward_tensor_path_train: dataset/shp/rewards_ultrarm_train_short.pt
-reward_tensor_path_validation: dataset/shp/rewards_ultrarm_validation_short.pt
-validation_data_path: dataset/shp/raw/validation.json
-test_data_path: dataset/shp/raw/test.json
+experiment_name: base
+dataset_name: hhrlhf
+h5_path_train: /scratch/iashrafi/train_hhrlhf.h5
+h5_path_validation: /scratch/iashrafi/validation_hhrlhf.h5
+reward_tensor_path_train: /scratch/iashrafi/rewards_ultrarm_train_hhrlhf.pt
+reward_tensor_path_validation: /scratch/iashrafi/rewards_ultrarm_validation_hhrlhf.pt
+validation_data_path: 
+test_data_path: dataset/hhrlhf/raw/test.json
 model_name: lmsys/vicuna-7b-v1.5
 reward_model: openbmb/UltraRM-13b
 llm_device: 1
@@ -18,5 +19,5 @@ input_dim: 4096
 hidden_dim: 4096
 output_dim: 1
 wandb_project: precontrol
-wandb_run_name: margin_regularizer
-checkpoint_dir: experiments/margin_regularizer
+wandb_run_name: base_hhrlhf_vicuna
+checkpoint_dir: experiments/base_hhrlhf_vicuna

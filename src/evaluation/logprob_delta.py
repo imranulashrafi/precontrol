@@ -1,4 +1,5 @@
 import torch.nn.functional as F
+import math
 
 
 def compute_avg_logprobs(prompt, response, model, tokenizer):
@@ -28,6 +29,9 @@ def compute_avg_logprobs(prompt, response, model, tokenizer):
     token_log_probs = log_probs.gather(2, response_labels.unsqueeze(-1)).squeeze(-1)
 
     avg_logprob = token_log_probs.mean().item()
+
+    if math.isnan(avg_logprob):
+        avg_logprob = 0.0
 
     return avg_logprob
 

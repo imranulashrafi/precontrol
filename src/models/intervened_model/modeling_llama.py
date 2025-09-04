@@ -30,7 +30,7 @@ class IntervenedLlamaModel(LlamaModel):
         lr: Optional[float] = None,
         epochs: Optional[int] = None,
     ) -> Union[Tuple, BaseModelOutputWithPast]:
-        
+
         output_attentions = (
             output_attentions
             if output_attentions is not None
@@ -135,6 +135,8 @@ class IntervenedLlamaModel(LlamaModel):
                 optimizer.zero_grad()
                 output = value_model(hidden_states_opt)
                 loss = -output.sum()
+                # if _ == epochs-1:
+                #     print("Loss: ", loss)
                 loss.backward()
                 optimizer.step()
 

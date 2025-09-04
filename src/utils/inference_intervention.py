@@ -15,8 +15,8 @@ class InferenceIntervention:
         tokenizer,
         use_intervention=True,
         value_model=None,
-        epochs=100,
-        lr=1,
+        epochs=50,
+        lr=0.5,
     ):
         self.model_path = model_path
         self.use_intervention = use_intervention
@@ -55,6 +55,7 @@ class InferenceIntervention:
 
     def _load_model_and_tokenizer(self):
         if self.use_intervention:
+            # print("coming here?")
             self.model = IntervenedLM.from_pretrained(
                 self.model_path,
                 low_cpu_mem_usage=True,

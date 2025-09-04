@@ -84,17 +84,28 @@ elif config["experiment_name"] == "margin_regularizer":
 
 checkpoint_callback = ModelCheckpoint(
     dirpath=config.get("checkpoint_dir"),
-    filename="epoch_{epoch}",
-    save_top_k=3,
+    filename="{epoch:02d}-val_loss_{val_total_loss:.4f}",
     monitor="val_total_loss",
     mode="min",
+    save_top_k=-1, 
     save_last=True,
     every_n_epochs=1,
+    auto_insert_metric_name=False,
 )
+
+
+class SaveBestModelCallback(pl.Callback):
+    def on_fit_end(self, trainer, pl_module):
+        best_model_path = trainer.checkpoint_callback.best_model_path
+        if best_model_path:
+            dest_path = os.path.join(config.get("checkpoint_dir"), "best_epoch.pth")
+            torch.save(torch.load(best_model_path), dest_path)
+            print(f"✅ Best model copied to {dest_path}")
+
 
 early_stop_callback = EarlyStopping(
     monitor="val_total_loss",
-    patience=3,
+    patience=5,
     mode="min",
     verbose=True,
 )
@@ -107,7 +118,11 @@ trainer = pl.Trainer(
     logger=wandb_logger,
     log_every_n_steps=10,
     num_sanity_val_steps=1,
-    callbacks=[checkpoint_callback, early_stop_callback],
+    callbacks=[
+        checkpoint_callback,
+        early_stop_callback,
+        SaveBestModelCallback(),
+    ],
 )
 
 trainer.fit(model, train_loader, val_loader)

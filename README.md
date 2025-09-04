@@ -23,7 +23,7 @@ source venv/bin/activate
 
 - Download dataset files from here https://tinyurl.com/shpdata and place them at `dataset/shp`.
 
-- Specify training config parameters in `experiments/config.yaml`.
+- Specify config parameters in `experiments/config.yaml`.
 
 - Login to W&B using the following:
 
@@ -39,4 +39,16 @@ export PYTHONPATH="$PYTHONPATH:$(pwd)"
 - Run training:
 ```bash
 python scripts/trainer.py
+```
+
+
+## 🔬 Testing
+
+- Download pre trained epxeriment artifacts from here: https://tinyurl.com/precontrolexperiments and place them in `experiments`.
+
+- Specify config parameters in `experiments/config.yaml`.
+
+- Run testing:
+```bash
+python scripts/test.py
 ```

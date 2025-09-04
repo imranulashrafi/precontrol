@@ -1,3 +1,6 @@
+import torch
+import torch.nn.functional as F
+
 from src.models.value_model.factory_value_model import BaseValueFunctionModule
 
 

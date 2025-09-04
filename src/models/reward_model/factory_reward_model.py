@@ -13,7 +13,7 @@ class RewardModel:
                 reward_model_name,
                 trust_remote_code=True,
                 torch_dtype=torch.bfloat16,
-            ).to("cuda:1")
+            ).to("cuda:0")
             self.tokenizer = LlamaTokenizer.from_pretrained(
                 reward_model_name, use_fast=True
             )
@@ -25,7 +25,7 @@ class RewardModel:
             encoded = self.tokenizer(
                 prompt + response,
                 return_tensors="pt",
-            ).to("cuda:1")
+            ).to("cuda:0")
         with torch.no_grad():
             outputs = self.model(**encoded)
         return outputs

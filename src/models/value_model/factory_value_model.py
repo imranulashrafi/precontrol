@@ -6,13 +6,18 @@ import yaml
 from tqdm import tqdm
 from torch.utils.data import Subset
 import copy
+import os
+import json
 
 from torch.utils.data import DataLoader
 from src.utils.inference_intervention import InferenceIntervention
 from src.evaluation.win_rate import WinRateEvaluator
 from src.evaluation.logprob_delta import compute_logprob_delta
 from src.data.dataset_shp import SHPDataset
+from src.data.dataset_hhrlhf import HHRLHFDataset
 from abc import ABC, abstractmethod
+from src.models.reward_model.factory_reward_model import RewardModel
+
 
 with open("experiments/config.yaml", "r") as f:
     config = yaml.safe_load(f)
@@ -41,14 +46,13 @@ class BaseValueFunctionModule(pl.LightningModule, ABC):
 
     def forward(self, x):
         return self.model(x)
-    
-    def evaluation(self, split="valid"):
-        if split == "valid":
-            dataset = SHPDataset(config["validation_data_path"])
-        elif split == "test":
-            dataset = SHPDataset(config["test_data_path"])
 
-        dataset = Subset(dataset, indices=list(range(1)))
+    def inference(self):
+        if config["dataset_name"] == "shp":
+            dataset = SHPDataset(config["test_data_path"])
+        if config["dataset_name"] == "hhrlhf":
+            dataset = HHRLHFDataset(config["test_data_path"])
+            dataset = Subset(dataset, indices=list(range(1000)))
 
         prompts = [d["prompt"] for d in dataset]
         preferreds = [d["preferred"] for d in dataset]
@@ -90,6 +94,44 @@ class BaseValueFunctionModule(pl.LightningModule, ABC):
 
         generations = [item["result"] for item in generated_outputs]
 
+        for prompt, preferred, rejected, generation in zip(
+            prompts, preferreds, rejecteds, generations
+        ):
+            entry = {
+                "prompt": prompt,
+                "preferred": preferred,
+                "rejected": rejected,
+                "generation": generation,
+            }
+            results.append(entry)
+
+        output_path = os.path.join(config["checkpoint_dir"], "test_results")
+        os.makedirs(output_path, exist_ok=True)
+
+        with open(
+            os.path.join(output_path, "inference_results.json"), "w", encoding="utf-8"
+        ) as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+
+        print(f"✅ Saved {len(results)} entries to {output_path}")
+
+    def calculate_win_rate(self):
+        if not os.path.exists(os.path.join(config["checkpoint_dir"], "test_results")):
+            self.inference()
+
+        with open(
+            os.path.join(
+                config["checkpoint_dir"], "test_results", "inference_results.json"
+            ),
+            "r",
+            encoding="utf-8",
+        ) as f:
+            data = json.load(f)
+
+        prompts = [item["prompt"] for item in data[8:]]
+        preferreds = [item["preferred"] for item in data[8:]]
+        generations = [item["generation"] for item in data[8:]]
+
         evaluator = WinRateEvaluator()
         win_count = 0
         total = 0
@@ -98,22 +140,89 @@ class BaseValueFunctionModule(pl.LightningModule, ABC):
             total=len(prompts),
             desc="Evaluating Win Rate",
         ):
+            pref = pref.rsplit("Assistant: ", 1)
+            pref = pref[1] if len(pref) > 1 else ""
+            
             score_gen, score_pref, _ = evaluator.evaluate_pair(prompt, gen, pref)
             if score_gen > score_pref:
                 win_count += 1
             total += 1
 
         win_rate = (win_count / total) * 100 if total > 0 else 0.0
-        self.log("val_win_rate", win_rate, on_epoch=True, logger=True)
+
+        print(f"📊 Win Rate: {win_rate:.2f}%")
+
+    def calculate_avg_reward(self):
+        if not os.path.exists(os.path.join(config["checkpoint_dir"], "test_results")):
+            self.inference()
+
+        with open(
+            os.path.join(
+                config["checkpoint_dir"], "test_results", "inference_results.json"
+            ),
+            "r",
+            encoding="utf-8",
+        ) as f:
+            data = json.load(f)
+
+        prompts = [item["prompt"] for item in data[8:]]
+        generations = [item["generation"] for item in data[8:]]
+
+        reward_model = RewardModel("openbmb/UltraRM-13b")
+
+        rewards = []
+
+        for prompt, generation in tqdm(zip(prompts, generations)):
+            rewards.append(reward_model.score(prompt, generation).item())
+
+        print(f"📊 Avg. Reward: {sum(rewards)/len(rewards)}")
+
+    def calculate_logprob_delta(self):
+        value_model = copy.deepcopy(self.model).to(self.device)
+
+        infer = InferenceIntervention(
+            model_path=config["model_name"],
+            tokenizer=self.tokenizer,
+            value_model=value_model,
+            use_intervention=True,
+        )
+
+        if not os.path.exists(os.path.join(config["checkpoint_dir"], "test_results")):
+            self.inference()
+
+        with open(
+            os.path.join(
+                config["checkpoint_dir"], "test_results", "inference_results.json"
+            ),
+            "r",
+            encoding="utf-8",
+        ) as f:
+            data = json.load(f)
+
+        prompts = [item["prompt"] for item in data[8:]]
+        preferreds = [item["preferred"] for item in data[8:]]
+        rejecteds = [item["rejected"] for item in data[8:]]
 
         macro_sum = 0
         correct = 0
         total = 0
 
         for prompt, pref, rej in zip(prompts, preferreds, rejecteds):
-            delta = compute_logprob_delta(
-                prompt, pref, rej, infer.model, self.tokenizer
-            )
+            if config["dataset_name"] == "hhrlhf":
+                pref_text = pref.rsplit("Assistant: ", 1)
+                rej_text = rej.rsplit("Assistant: ", 1)
+
+                pref_clean = pref_text[1] if len(pref_text) > 1 else ""
+                rej_clean = rej_text[1] if len(rej_text) > 1 else ""
+
+                delta = compute_logprob_delta(
+                    prompt,
+                    pref_clean,
+                    rej_clean,
+                    infer.model,
+                    self.tokenizer,
+                )
+
             macro_sum += delta
             correct += delta > 0.0
             total += 1
@@ -121,18 +230,10 @@ class BaseValueFunctionModule(pl.LightningModule, ABC):
         macro_mean = macro_sum / total if total else 0.0
         acc = (correct / total) if total else 0.0
 
-        self.log(
-            "val_logprob_delta",
-            macro_mean,
-            on_epoch=True,
-            logger=True,
-        )
-        self.log("val_logprob_delta_acc", acc, on_epoch=True, logger=True)
-
-        if split=="test":
-            print(f"📊 Win Rate: {win_rate:.2f}%")
-            print(f"📊 Logprob Δ Mean: {macro_mean:.4f}")
-            print(f"📊 Logprob Δ Accuracy: {acc * 100:.2f}%")
+        print("Macro Sum: ", macro_sum)
+        print("Total: ", total)
+        print(f"📊 Logprob Delta: {macro_mean:.2f}")
+        print(f"📊 Logprob Delta Accuracy: {acc*100:.2f}%")
 
     @abstractmethod
     def shared_step(self, batch, stage):
@@ -143,9 +244,6 @@ class BaseValueFunctionModule(pl.LightningModule, ABC):
 
     def validation_step(self, batch, batch_idx):
         return self.shared_step(batch, "val")
-
-    def on_validation_epoch_end(self):
-        return self.evaluation()
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
