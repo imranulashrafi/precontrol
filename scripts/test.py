@@ -58,7 +58,6 @@ assert missing != True and unexpected != True
 
 model = model.to(config["model_device"])
 
-# model.inference()
+model.inference()
 model.calculate_win_rate()
 model.calculate_avg_reward()
-model.calculate_logprob_delta()

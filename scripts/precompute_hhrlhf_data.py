@@ -23,7 +23,7 @@ CONFIG_PATH = "experiments/config.yaml"
 BATCH_SIZE = 8
 MAX_SEQ_LEN = 256
 MAX_INPUT_TOKENS = 300
-OUTPUT_DIR = "/scratch/iashrafi/"
+OUTPUT_DIR = "/home"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -414,16 +414,8 @@ def main():
     )
 
     dataset = load_dataset("Anthropic/hh-rlhf", split="train")
-    num_samples = min(150000, len(dataset))
-    subset = dataset.select(range(150000, len(dataset)))
 
-    # subset = load_dataset(
-    #     "json",
-    #     data_files="/home/iashrafi/Data/Codes/refactored_final/dataset/shp/raw/test.json",
-    #     split="train",
-    # )
-
-    process_split("validation_hhrlhf", subset, activation_generator, tokenizer, config)
+    process_split("validation_hhrlhf", dataset, activation_generator, tokenizer, config)
 
 
 if __name__ == "__main__":

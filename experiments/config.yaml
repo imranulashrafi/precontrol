@@ -1,11 +1,11 @@
 experiment_name: base
-dataset_name: hhrlhf
-h5_path_train: /scratch/iashrafi/train_hhrlhf.h5
-h5_path_validation: /scratch/iashrafi/validation_hhrlhf.h5
-reward_tensor_path_train: /scratch/iashrafi/rewards_ultrarm_train_hhrlhf.pt
-reward_tensor_path_validation: /scratch/iashrafi/rewards_ultrarm_validation_hhrlhf.pt
+dataset_name: shp
+h5_path_train: train_shp.h5
+h5_path_validation: validation_shp.h5
+reward_tensor_path_train: rewards_ultrarm_train_shp.pt
+reward_tensor_path_validation: rewards_ultrarm_validation_shp.pt
 validation_data_path: 
-test_data_path: dataset/hhrlhf/raw/test.json
+test_data_path: dataset/shp/raw/test.json
 model_name: lmsys/vicuna-7b-v1.5
 reward_model: openbmb/UltraRM-13b
 llm_device: 1
@@ -13,11 +13,11 @@ model_device: 0
 epochs: 50
 lr: 0.00001
 batch_size: 64
-together_api_key: 9fe6bc8cf14d6ac914834884f3d4f7e6d17c0bacb108d3ed5672c30eac6740f7
-hf_home: /scratch/iashrafi/huggingface
+together_api_key: 
+hf_home: /home/huggingface
 input_dim: 4096
 hidden_dim: 4096
 output_dim: 1
-wandb_project: precontrol
-wandb_run_name: base_hhrlhf_vicuna
-checkpoint_dir: experiments/base_hhrlhf_vicuna
+wandb_project: prefctrl
+wandb_run_name: base_shp_vicuna
+checkpoint_dir: experiments/base_shp_vicuna

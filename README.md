@@ -1,4 +1,4 @@
-# 🧠 PRE-Control
+# 🧠 Pref-CTRL
 
 ## 📦 Requirements
 
@@ -8,12 +8,6 @@
 
 ## 🚀 Getting Started
 
-- Clone the repo:
-
-```bash
-git clone https://github.com/imranulashrafi/alignet.git
-```
-
 - Set up the environment:
 
 ```bash
@@ -21,7 +15,16 @@ python3.11 -m venv venv
 source venv/bin/activate
 ```
 
-- Download dataset files from here https://tinyurl.com/shpdata and place them at `dataset/shp`.
+- Export PYTHONPATH:
+```bash
+export PYTHONPATH="$PYTHONPATH:$(pwd)"
+```
+
+- Generate dataset files using the following:
+```bash
+python scripts/precompute_shp_data.py
+python scripts/precompute_rewards.py
+```
 
 - Specify config parameters in `experiments/config.yaml`.
 
@@ -29,11 +32,6 @@ source venv/bin/activate
 
 ```bash
 wandb login
-```
-
-- Export PYTHONPATH:
-```bash
-export PYTHONPATH="$PYTHONPATH:$(pwd)"
 ```
 
 - Run training:
@@ -44,7 +42,7 @@ python scripts/trainer.py
 
 ## 🔬 Testing
 
-- Download pre trained epxeriment artifacts from here: https://tinyurl.com/precontrolexperiments and place them in `experiments`.
+- Download pre trained epxeriment artifacts from here: https://tinyurl.com/modelartifacts and place them in `experiments`.
 
 - Specify config parameters in `experiments/config.yaml`.
 

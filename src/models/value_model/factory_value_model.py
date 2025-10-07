@@ -12,7 +12,6 @@ import json
 from torch.utils.data import DataLoader
 from src.utils.inference_intervention import InferenceIntervention
 from src.evaluation.win_rate import WinRateEvaluator
-from src.evaluation.logprob_delta import compute_logprob_delta
 from src.data.dataset_shp import SHPDataset
 from src.data.dataset_hhrlhf import HHRLHFDataset
 from abc import ABC, abstractmethod
@@ -128,9 +127,9 @@ class BaseValueFunctionModule(pl.LightningModule, ABC):
         ) as f:
             data = json.load(f)
 
-        prompts = [item["prompt"] for item in data[8:]]
-        preferreds = [item["preferred"] for item in data[8:]]
-        generations = [item["generation"] for item in data[8:]]
+        prompts = [item["prompt"] for item in data]
+        preferreds = [item["preferred"] for item in data]
+        generations = [item["generation"] for item in data]
 
         evaluator = WinRateEvaluator()
         win_count = 0
@@ -165,8 +164,8 @@ class BaseValueFunctionModule(pl.LightningModule, ABC):
         ) as f:
             data = json.load(f)
 
-        prompts = [item["prompt"] for item in data[8:]]
-        generations = [item["generation"] for item in data[8:]]
+        prompts = [item["prompt"] for item in data]
+        generations = [item["generation"] for item in data]
 
         reward_model = RewardModel("openbmb/UltraRM-13b")
 
@@ -176,64 +175,6 @@ class BaseValueFunctionModule(pl.LightningModule, ABC):
             rewards.append(reward_model.score(prompt, generation).item())
 
         print(f"📊 Avg. Reward: {sum(rewards)/len(rewards)}")
-
-    def calculate_logprob_delta(self):
-        value_model = copy.deepcopy(self.model).to(self.device)
-
-        infer = InferenceIntervention(
-            model_path=config["model_name"],
-            tokenizer=self.tokenizer,
-            value_model=value_model,
-            use_intervention=True,
-        )
-
-        if not os.path.exists(os.path.join(config["checkpoint_dir"], "test_results")):
-            self.inference()
-
-        with open(
-            os.path.join(
-                config["checkpoint_dir"], "test_results", "inference_results.json"
-            ),
-            "r",
-            encoding="utf-8",
-        ) as f:
-            data = json.load(f)
-
-        prompts = [item["prompt"] for item in data[8:]]
-        preferreds = [item["preferred"] for item in data[8:]]
-        rejecteds = [item["rejected"] for item in data[8:]]
-
-        macro_sum = 0
-        correct = 0
-        total = 0
-
-        for prompt, pref, rej in zip(prompts, preferreds, rejecteds):
-            if config["dataset_name"] == "hhrlhf":
-                pref_text = pref.rsplit("Assistant: ", 1)
-                rej_text = rej.rsplit("Assistant: ", 1)
-
-                pref_clean = pref_text[1] if len(pref_text) > 1 else ""
-                rej_clean = rej_text[1] if len(rej_text) > 1 else ""
-
-                delta = compute_logprob_delta(
-                    prompt,
-                    pref_clean,
-                    rej_clean,
-                    infer.model,
-                    self.tokenizer,
-                )
-
-            macro_sum += delta
-            correct += delta > 0.0
-            total += 1
-
-        macro_mean = macro_sum / total if total else 0.0
-        acc = (correct / total) if total else 0.0
-
-        print("Macro Sum: ", macro_sum)
-        print("Total: ", total)
-        print(f"📊 Logprob Delta: {macro_mean:.2f}")
-        print(f"📊 Logprob Delta Accuracy: {acc*100:.2f}%")
 
     @abstractmethod
     def shared_step(self, batch, stage):

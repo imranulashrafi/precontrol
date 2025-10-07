@@ -23,8 +23,7 @@ a response appears cut off at the end due to length constraints, it should not n
 answer, disregarding any preceding interactions in the question. Each assistant receives an overall score on a scale of 1 to 10, where a higher score 
 indicates better overall performance.
 
-Please output a single line containing only two values indicating the scores for Assistant 1 and 2, respectively, avoiding any potential bias and 
-ensuring that the order in which the responses were presented does not affect your judgment."""
+Please output a single line containing only two values indicating the scores for Assistant 1 and 2, respectively, avoiding any potential bias and ensuring that the order in which the responses were presented does not affect your judgment."""
 
 USER_PROMPT = """[Question]
 {question}

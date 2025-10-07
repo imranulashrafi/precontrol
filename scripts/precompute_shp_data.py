@@ -20,10 +20,10 @@ import hdf5plugin
 from numcodecs import Blosc
 
 CONFIG_PATH = "experiments/config.yaml"
-BATCH_SIZE = 4
+BATCH_SIZE = 8
 MAX_SEQ_LEN = 256
 MAX_INPUT_TOKENS = 300
-OUTPUT_DIR = "/scratch/iashrafi/"
+OUTPUT_DIR = "/home"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -413,18 +413,8 @@ def main():
     )
 
     dataset = load_dataset("stanfordnlp/SHP", split="train")
-    num_samples = min(200, len(dataset))
-    subset = dataset.shuffle(seed=42).select(range(num_samples))
 
-    # subset = load_dataset(
-    #     "json",
-    #     data_files="/home/iashrafi/Data/Codes/alignet/dataset/shp/raw/validation.json",
-    #     split="train",
-    # )
-    # num_samples = min(200, len(subset))
-    # subset = subset.shuffle(seed=42).select(range(num_samples))
-
-    process_split("train_short", subset, activation_generator, tokenizer, config)
+    process_split("train", dataset, activation_generator, tokenizer, config)
 
 
 if __name__ == "__main__":

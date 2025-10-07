@@ -12,7 +12,6 @@ class HHRLHFDataset(Dataset):
 
     def __getitem__(self, idx):
         item = self.dataset[idx]
-        # print(item)
 
         prompt = (
             item.get("chosen")
