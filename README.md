@@ -41,9 +41,6 @@ python scripts/trainer.py
 
 
 ## 🔬 Testing
-
-- Download pre trained epxeriment artifacts from here: https://tinyurl.com/modelartifacts and place them in `experiments`.
-
 - Specify config parameters in `experiments/config.yaml`.
 
 - Run testing:
