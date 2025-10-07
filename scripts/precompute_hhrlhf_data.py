@@ -101,89 +101,6 @@ def pad_mask(x, max_len):
     return x[:, :max_len]
 
 
-class FastH5Writer:
-    def __init__(self, path, total_samples, seq_dim, hidden_dim):
-        self.index = 0
-        self.total_samples = total_samples
-
-        self.f = h5py.File(path, "w", libver="latest")
-
-        self.datasets = {
-            "generated/activations": self.f.create_dataset(
-                "generated/activations",
-                (total_samples, seq_dim, hidden_dim),
-                dtype="float16",
-            ),
-            "generated/masks": self.f.create_dataset(
-                "generated/masks", (total_samples, seq_dim), dtype="uint8"
-            ),
-            "generated/responses": self.f.create_dataset(
-                "generated/responses",
-                (total_samples,),
-                dtype=h5py.string_dtype(encoding="utf-8"),
-            ),
-            "preferred/activations": self.f.create_dataset(
-                "preferred/activations",
-                (total_samples, seq_dim, hidden_dim),
-                dtype="float16",
-            ),
-            "preferred/masks": self.f.create_dataset(
-                "preferred/masks", (total_samples, seq_dim), dtype="uint8"
-            ),
-            "rejected/activations": self.f.create_dataset(
-                "rejected/activations",
-                (total_samples, seq_dim, hidden_dim),
-                dtype="float16",
-            ),
-            "rejected/masks": self.f.create_dataset(
-                "rejected/masks", (total_samples, seq_dim), dtype="uint8"
-            ),
-        }
-
-    def write_batch(self, batch_dict):
-        s = self.index
-        e = s + batch_dict["generated_activations"].shape[0]
-
-        self.datasets["generated/activations"][s:e] = self._np(
-            batch_dict["generated_activations"]
-        )
-        self.datasets["generated/masks"][s:e] = self._np(
-            batch_dict["generated_masks"], dtype="uint8"
-        )
-        self.datasets["generated/responses"][s:e] = self._encode_strs(
-            batch_dict["generated_responses"]
-        )
-
-        self.datasets["preferred/activations"][s:e] = self._np(
-            batch_dict["preferred_activations"]
-        )
-        self.datasets["preferred/masks"][s:e] = self._np(
-            batch_dict["preferred_masks"], dtype="uint8"
-        )
-        self.datasets["rejected/activations"][s:e] = self._np(
-            batch_dict["rejected_activations"]
-        )
-        self.datasets["rejected/masks"][s:e] = self._np(
-            batch_dict["rejected_masks"], dtype="uint8"
-        )
-
-        self.index = e
-
-    def _np(self, data, dtype=None):
-        if isinstance(data, torch.Tensor):
-            data = data.cpu().numpy()
-        if dtype:
-            data = data.astype(dtype)
-        return data
-
-    def _encode_strs(self, texts):
-        return np.array(texts, dtype=h5py.string_dtype(encoding="utf-8"))
-
-    def close(self):
-        self.f.flush()
-        self.f.close()
-
-
 class FastH5WriterCompress:
     def __init__(self, path, total_samples, seq_dim, hidden_dim):
         self.index = 0
@@ -415,7 +332,7 @@ def main():
 
     dataset = load_dataset("Anthropic/hh-rlhf", split="train")
 
-    process_split("validation_hhrlhf", dataset, activation_generator, tokenizer, config)
+    process_split("train_hhrlhf", dataset, activation_generator, tokenizer, config)
 
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@ score_1 score_2
 Do not include anything before or after the output. Only one line with two scores.
 """
 
-tokenizer = AutoTokenizer.from_pretrained("lmsys/vicuna-7b-v1.3")
+tokenizer = AutoTokenizer.from_pretrained(config["model_name"])
 
 
 class WinRateEvaluator:

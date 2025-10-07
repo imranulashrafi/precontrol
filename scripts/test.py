@@ -20,7 +20,7 @@ from src.models.value_model.modeling_margin import (
     ValueFunctionModuleMargin,
 )
 
-tokenizer = AutoTokenizer.from_pretrained("lmsys/vicuna-7b-v1.3", padding_side="left")
+tokenizer = AutoTokenizer.from_pretrained(config["model_name"], padding_side="left")
 
 if config["experiment_name"] == "base":
     model = ValueFunctionModule(
